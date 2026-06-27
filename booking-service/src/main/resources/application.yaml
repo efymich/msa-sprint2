@@ -1,0 +1,32 @@
+spring:
+  application:
+    name: booking-service
+  grpc:
+    server:
+      port: 9090
+  datasource:
+    url: ${SPRING_DATASOURCE_URL}
+    username: ${SPRING_DATASOURCE_USERNAME}
+    password: ${SPRING_DATASOURCE_PASSWORD}
+  jpa:
+    hibernate:
+      ddl-auto: create
+    show-sql: true
+    properties:
+      hibernate.format_sql: false
+feign:
+  client:
+    config:
+      connectTimeout: 5000
+      readTimeout: 5000
+      loggerLevel: full
+
+monolith:
+  userservice:
+    url: http://localhost:8080/api/users
+  hotelservice:
+    url: http://localhost:8080/api/hotels
+  reviewservice:
+    url: http://localhost:8080/api/reviews
+  promocodeservice:
+    url: http://localhost:8080/api/promo-codes

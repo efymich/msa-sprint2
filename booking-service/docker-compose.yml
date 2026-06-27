@@ -44,6 +44,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/booking
       SPRING_DATASOURCE_USERNAME: booking
       SPRING_DATASOURCE_PASSWORD: booking
+    depends_on:
+      - booking-db
 
   booking-db:
     image: postgres:15
