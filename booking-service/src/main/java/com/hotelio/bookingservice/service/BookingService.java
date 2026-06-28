@@ -4,8 +4,9 @@ import com.hotelio.bookingservice.client.MonolithHotelServiceClient;
 import com.hotelio.bookingservice.client.MonolithPromoCodeServiceClient;
 import com.hotelio.bookingservice.client.MonolithReviewServiceClient;
 import com.hotelio.bookingservice.client.MonolithUserServiceClient;
+import com.hotelio.bookingservice.dto.PromoCode;
 import com.hotelio.bookingservice.entity.Booking;
-import com.hotelio.bookingservice.entity.PromoCode;
+import com.hotelio.core.middleware.BookingCreatedEvent;
 import com.hotelio.bookingservice.mapper.BookingMapper;
 import com.hotelio.bookingservice.repository.BookingRepository;
 import com.hotelio.proto.booking.BookingRequest;
@@ -14,14 +15,18 @@ import com.hotelio.proto.booking.BookingServiceGrpc;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.grpc.server.service.GrpcService;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Optional;
 
 @Slf4j
 @GrpcService
 public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
+
+    @Value("${app.kafka.topics.booking-history.name}")
+    private String bookingHistoryTopicName;
 
     private final BookingRepository bookingRepository;
 
@@ -35,14 +40,23 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
 
     private final BookingMapper bookingMapper;
 
+    private final KafkaTemplate<String, BookingCreatedEvent> kafkaTemplate;
+
     @Autowired
-    public BookingService(BookingRepository bookingRepository, RestTemplate restTemplate, MonolithUserServiceClient userServiceClient, MonolithHotelServiceClient hotelServiceClient, MonolithReviewServiceClient reviewServiceClient, MonolithPromoCodeServiceClient promoCodeServiceClient, BookingMapper bookingMapper) {
+    public BookingService(BookingRepository bookingRepository,
+                          MonolithUserServiceClient userServiceClient,
+                          MonolithHotelServiceClient hotelServiceClient,
+                          MonolithReviewServiceClient reviewServiceClient,
+                          MonolithPromoCodeServiceClient promoCodeServiceClient,
+                          BookingMapper bookingMapper,
+                          KafkaTemplate<String, BookingCreatedEvent> kafkaTemplate) {
         this.bookingRepository = bookingRepository;
         this.userServiceClient = userServiceClient;
         this.hotelServiceClient = hotelServiceClient;
         this.reviewServiceClient = reviewServiceClient;
         this.promoCodeServiceClient = promoCodeServiceClient;
         this.bookingMapper = bookingMapper;
+        this.kafkaTemplate = kafkaTemplate;
     }
 
 
@@ -62,7 +76,6 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
         double finalPrice = basePrice - discount;
         log.info("Final price calculated: base={}, discount={}, final={}", basePrice, discount, finalPrice);
 
-
         Booking booking = new Booking();
         booking.setUserId(userId);
         booking.setHotelId(hotelId);
@@ -71,6 +84,10 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
         booking.setPrice(finalPrice);
 
         bookingRepository.save(booking);
+
+        log.info("Preparing to send booking in Kafka: bookingId = {}",booking.getId());
+        BookingCreatedEvent bookingCreatedEvent = bookingMapper.pojoToEvent(booking);
+        kafkaTemplate.send(bookingHistoryTopicName,booking.getId(), bookingCreatedEvent);
 
         BookingResponse bookingResponse = bookingMapper.pojoToProto(booking);
 

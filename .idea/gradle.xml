@@ -4,11 +4,22 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/booking-history-service" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/booking-history-service" />
+            <option value="$PROJECT_DIR$/middleware" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/booking-service" />
         <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/booking-service" />
+            <option value="$PROJECT_DIR$/middleware" />
           </set>
         </option>
       </GradleProjectSettings>
@@ -21,6 +32,15 @@
           </set>
         </option>
         <option name="myGradleHome" value="C:\Gradle\gradle-9.2.1" />
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/middleware" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/middleware" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>
