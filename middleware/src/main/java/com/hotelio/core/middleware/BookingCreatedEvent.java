@@ -13,7 +13,8 @@ import java.time.Instant;
 @AllArgsConstructor
 public class BookingCreatedEvent {
 
-    private String bookingId;
+    private String eventId;
+    private Long bookingId;
     private String userId;
     private String hotelId;
     private String promoCode;

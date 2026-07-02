@@ -16,26 +16,31 @@ spring:
       hibernate:
         format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
+  kafka:
+    bootstrap-servers: kafka:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
 feign:
   client:
     config:
-      connectTimeout: 5000
-      readTimeout: 5000
-      loggerLevel: full
-
-kafka:
-  bootstrap-servers: kafka:9092
-  producer:
-    key-serializer: org.apache.kafka.common.serialization.StringSerializer
-    value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-    acks: all
-    retries: 3
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: full
 
 app:
   kafka:
     topics:
       booking-history:
         name: booking-history-topic
+
+logging:
+  level:
+    io.grpc: DEBUG
+    com.hotelio: DEBUG
 
 monolith:
   userservice:
@@ -45,4 +50,4 @@ monolith:
   reviewservice:
     url: http://hotelio-monolith:8080/api/reviews
   promocodeservice:
-    url: http://hotelio-monolith:8080/api/promo-codes
+    url: http://hotelio-monolith:8080/api/promos

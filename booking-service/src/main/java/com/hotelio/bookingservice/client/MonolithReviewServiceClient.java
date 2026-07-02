@@ -7,6 +7,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "reviewservice", url = "${monolith.reviewservice.url}")
 public interface MonolithReviewServiceClient {
 
-    @GetMapping("/{hotelId}/trusted")
+    @GetMapping("/hotel/{hotelId}/trusted")
     boolean isTrustedHotel(@PathVariable("hotelId") String hotelId);
 }

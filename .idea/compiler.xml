@@ -1,18 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <annotationProcessing>
-      <profile name="Gradle Imported" enabled="true">
-        <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/.gradle/caches/modules-2/files-2.1/org.projectlombok/lombok/1.18.46/a5cfe99fdf320e84955ef653f2ce1bf789d11385/lombok-1.18.46.jar" />
-        </processorPath>
-        <module name="booking-history-service.middleware.test" />
-        <module name="booking-history-service.main" />
-        <module name="booking-history-service.test" />
-        <module name="booking-history-service.middleware.main" />
-      </profile>
-    </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="bookingservice" target="21" />
       <module name="bookingservice.main" target="21" />
@@ -25,15 +13,9 @@
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="booking-history-service" options="-parameters" />
       <module name="booking-history-service.main" options="-parameters" />
-      <module name="booking-history-service.middleware" options="-parameters" />
-      <module name="booking-history-service.middleware.main" options="-parameters" />
-      <module name="booking-history-service.middleware.test" options="-parameters" />
       <module name="booking-history-service.test" options="-parameters" />
       <module name="booking-service" options="-parameters" />
       <module name="booking-service.main" options="-parameters" />
-      <module name="booking-service.middleware" options="-parameters" />
-      <module name="booking-service.middleware.main" options="-parameters" />
-      <module name="booking-service.middleware.test" options="-parameters" />
       <module name="booking-service.test" options="-parameters" />
       <module name="bookingservice" options="-parameters" />
       <module name="bookingservice.main" options="-parameters" />
@@ -43,9 +25,6 @@
       <module name="hotelio-monolith" options="-parameters" />
       <module name="hotelio-monolith.main" options="-parameters" />
       <module name="hotelio-monolith.test" options="-parameters" />
-      <module name="middleware" options="-parameters" />
-      <module name="middleware.main" options="-parameters" />
-      <module name="middleware.test" options="-parameters" />
     </option>
   </component>
 </project>

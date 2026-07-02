@@ -3,6 +3,7 @@ package com.hotelio.bookingservice.entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.data.annotation.CreatedDate;
 
 import java.time.Instant;
 
@@ -13,7 +14,7 @@ public class Booking {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
     private String userId;
     private String hotelId;
@@ -24,6 +25,7 @@ public class Booking {
     @Column(nullable = false)
     private Double price;
 
+    @CreatedDate
     private Instant createdAt;
 
 }

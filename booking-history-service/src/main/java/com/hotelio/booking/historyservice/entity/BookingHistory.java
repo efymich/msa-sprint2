@@ -9,12 +9,14 @@ import java.time.Instant;
 @Setter
 @Getter
 @Entity
+@Table(name = "booking_history")
 public class BookingHistory {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private String id;
+    private Long id;
 
+    private Long bookingId;
     private String userId;
     private String hotelId;
 

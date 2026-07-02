@@ -27,7 +27,7 @@ services:
       POSTGRES_PASSWORD: hotelio
       POSTGRES_DB: hotelio
     ports:
-      - "5433:5432"
+      - "5432:5432"
     volumes:
       - monolith-db-data:/var/lib/postgresql/data
     networks:
@@ -35,8 +35,8 @@ services:
 
   booking-service:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: booking-service/Dockerfile
     container_name: booking-service
     ports:
       - "8085:8080"
@@ -49,9 +49,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: booking
     depends_on:
      booking-db:
-       condition: service_healthy
-     kafka:
-       condition: service_healthy
+       condition: service_started
 
   booking-db:
     image: postgres:15
@@ -61,11 +59,31 @@ services:
       POSTGRES_PASSWORD: booking
       POSTGRES_DB: booking
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - booking-db-data:/var/lib/postgresql/data
     networks:
       - hotelio-net
+
+  booking-history-service:
+    build:
+      context: ..
+      dockerfile: booking-history-service/Dockerfile
+    container_name: booking-history-service
+    ports:
+      - "8081:8080"
+    networks:
+      - hotelio-net
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://booking-db:5432/booking
+      SPRING_DATASOURCE_USERNAME: booking
+      SPRING_DATASOURCE_PASSWORD: booking
+    depends_on:
+      booking-db:
+        condition: service_started
+    volumes:
+      - booking-db-data:/var/lib/postgresql/data
+
 
   kafka:
     image: apache/kafka:4.3.1
@@ -84,17 +102,27 @@ services:
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
-    healthcheck:
-      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092 > /dev/null 2>&1"]
-      interval: 10s
-      timeout: 10s
-      retries: 10
     networks:
       - hotelio-net
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  adminer:
+    image: adminer
+    ports:
+      - "8090:8080"
+    networks:
+      - hotelio-net
+    depends_on:
+      monolith-db:
+        condition: service_started
+      booking-db:
+        condition: service_started
 
 volumes:
   monolith-db-data:
   booking-db-data:
+  kafka-data:
 
 networks:
   hotelio-net:

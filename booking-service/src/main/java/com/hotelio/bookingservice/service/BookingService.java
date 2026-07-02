@@ -20,6 +20,7 @@ import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.kafka.core.KafkaTemplate;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Slf4j
 @GrpcService
@@ -63,36 +64,53 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
     @Override
     public void createBooking(BookingRequest request, StreamObserver<BookingResponse> responseObserver) {
 
-        String userId = request.getUserId();
-        String hotelId = request.getHotelId();
-        String promoCode = request.getPromoCode();
+        try {
+            String userId = request.getUserId();
+            String hotelId = request.getHotelId();
+            String promoCode = request.getPromoCode();
 
-        validateUser(userId);
-        validateHotel(hotelId);
+            validateUser(userId);
+            validateHotel(hotelId);
 
-        double basePrice = resolveBasePrice(userId);
-        double discount = resolvePromoDiscount(promoCode, userId);
+            double basePrice = resolveBasePrice(userId);
+            double discount = resolvePromoDiscount(promoCode, userId);
 
-        double finalPrice = basePrice - discount;
-        log.info("Final price calculated: base={}, discount={}, final={}", basePrice, discount, finalPrice);
+            double finalPrice = basePrice - discount;
+            log.info("Final price calculated: base={}, discount={}, final={}", basePrice, discount, finalPrice);
 
-        Booking booking = new Booking();
-        booking.setUserId(userId);
-        booking.setHotelId(hotelId);
-        booking.setPromoCode(promoCode);
-        booking.setDiscountPercent(discount);
-        booking.setPrice(finalPrice);
+            Booking booking = new Booking();
+            booking.setUserId(userId);
+            booking.setHotelId(hotelId);
+            booking.setPromoCode(promoCode);
+            booking.setDiscountPercent(discount);
+            booking.setPrice(finalPrice);
 
-        bookingRepository.save(booking);
+            Booking savedBooking = bookingRepository.save(booking);
 
-        log.info("Preparing to send booking in Kafka: bookingId = {}",booking.getId());
-        BookingCreatedEvent bookingCreatedEvent = bookingMapper.pojoToEvent(booking);
-        kafkaTemplate.send(bookingHistoryTopicName,booking.getId(), bookingCreatedEvent);
+            log.info("Preparing to send booking in Kafka: bookingId = {}",savedBooking.getId());
+            BookingCreatedEvent bookingCreatedEvent = bookingMapper.pojoToEvent(savedBooking);
+            kafkaTemplate.send(bookingHistoryTopicName, UUID.randomUUID().toString(), bookingCreatedEvent);
 
-        BookingResponse bookingResponse = bookingMapper.pojoToProto(booking);
+            BookingResponse bookingResponse = bookingMapper.pojoToProto(savedBooking);
 
-        responseObserver.onNext(bookingResponse);
-        responseObserver.onCompleted();
+            responseObserver.onNext(bookingResponse);
+            responseObserver.onCompleted();
+        } catch (IllegalArgumentException e) {
+            log.warn("Booking validation failed: {}", e.getMessage());
+            responseObserver.onError(
+                    io.grpc.Status.INVALID_ARGUMENT
+                            .withDescription(e.getMessage())
+                            .asRuntimeException()
+            );
+        } catch (Exception e) {
+            log.error("Unexpected error during booking creation", e);
+            responseObserver.onError(
+                    io.grpc.Status.INTERNAL
+                            .withDescription(e.getMessage())
+                            .withCause(e)
+                            .asRuntimeException()
+            );
+        }
     }
 
     private void validateUser(String userId) {
@@ -134,7 +152,7 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
     }
 
     private double resolvePromoDiscount(String promoCode, String userId) {
-        if (promoCode == null) return 0.0;
+        if (promoCode == null || promoCode.isBlank()) return 0.0;
 
         PromoCode promo = promoCodeServiceClient.validate(promoCode, userId);
         if (promo == null) {
