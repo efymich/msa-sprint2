@@ -19,13 +19,9 @@ public class BookingHistory {
     private Long bookingId;
     private String userId;
     private String hotelId;
-
     private String promoCode;
     private Double discountPercent;
-
-    @Column(nullable = false)
     private Double price;
-
     private Instant createdAt;
 
 }

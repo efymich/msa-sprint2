@@ -9,9 +9,7 @@ import com.hotelio.bookingservice.entity.Booking;
 import com.hotelio.core.middleware.BookingCreatedEvent;
 import com.hotelio.bookingservice.mapper.BookingMapper;
 import com.hotelio.bookingservice.repository.BookingRepository;
-import com.hotelio.proto.booking.BookingRequest;
-import com.hotelio.proto.booking.BookingResponse;
-import com.hotelio.proto.booking.BookingServiceGrpc;
+import com.hotelio.proto.booking.*;
 import io.grpc.stub.StreamObserver;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +17,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.kafka.core.KafkaTemplate;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -60,6 +60,36 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
         this.kafkaTemplate = kafkaTemplate;
     }
 
+    @Override
+    public void listBookings(BookingListRequest request, StreamObserver<BookingListResponse> responseObserver) {
+        try {
+            List<Booking> bookings;
+
+            if (request.getUserId().equals("default")) {
+                bookings = bookingRepository.findAll();
+            } else {
+                bookings = bookingRepository.findByUserId(request.getUserId());
+            }
+
+            List<BookingResponse> bookingResponses = bookings.stream()
+                    .map(bookingMapper::pojoToProto)
+                    .toList();
+            BookingListResponse response = BookingListResponse.newBuilder()
+                    .addAllBookings(bookingResponses)
+                    .build();
+            responseObserver.onNext(response);
+            responseObserver.onCompleted();
+
+        } catch (Exception e) {
+            log.error("Unexpected error during booking creation", e);
+            responseObserver.onError(
+                    io.grpc.Status.INTERNAL
+                            .withDescription(e.getMessage())
+                            .withCause(e)
+                            .asRuntimeException()
+            );
+        }
+    }
 
     @Override
     public void createBooking(BookingRequest request, StreamObserver<BookingResponse> responseObserver) {
