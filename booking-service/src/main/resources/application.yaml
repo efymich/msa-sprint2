@@ -39,8 +39,7 @@ app:
 
 logging:
   level:
-    io.grpc: DEBUG
-    com.hotelio: DEBUG
+    com.hotelio: INFO
 
 monolith:
   userservice:

@@ -16,6 +16,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.grpc.server.service.GrpcService;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -92,6 +94,7 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
     }
 
     @Override
+    @Transactional(propagation = Propagation.REQUIRED)
     public void createBooking(BookingRequest request, StreamObserver<BookingResponse> responseObserver) {
 
         try {
@@ -119,7 +122,7 @@ public class BookingService extends BookingServiceGrpc.BookingServiceImplBase {
 
             log.info("Preparing to send booking in Kafka: bookingId = {}",savedBooking.getId());
             BookingCreatedEvent bookingCreatedEvent = bookingMapper.pojoToEvent(savedBooking);
-            kafkaTemplate.send(bookingHistoryTopicName, UUID.randomUUID().toString(), bookingCreatedEvent);
+            kafkaTemplate.send(bookingHistoryTopicName, String.valueOf(savedBooking.getId()), bookingCreatedEvent);
 
             BookingResponse bookingResponse = bookingMapper.pojoToProto(savedBooking);
 

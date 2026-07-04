@@ -19,5 +19,5 @@ public class BookingCreatedEvent {
     private String promoCode;
     private Double discountPercent;
     private Double price;
-    private Instant createdAt;
+    private String createdAt;
 }

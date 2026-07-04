@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 COPY wait-for-it.sh /usr/local/bin/wait-for-it
-COPY init-fixtures.sql init-fixtures-booking-service.sql regress.sh ./
+COPY init-fixtures.sql regress.sh ./
 RUN dos2unix /usr/local/bin/wait-for-it regress.sh \
     && chmod +x /usr/local/bin/wait-for-it regress.sh
 
