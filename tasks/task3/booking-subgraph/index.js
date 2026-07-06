@@ -10,24 +10,60 @@ const typeDefs = gql`
     hotelId: String!
     promoCode: String
     discountPercent: Int
+    hotel: Hotel
   }
-
+  
+  extend type Hotel @key(fields: "id") {
+    id: ID! @external
+  }
+  
   type Query {
     bookingsByUser(userId: String!): [Booking]
   }
 
 `;
 
+const MOCK_BOOKINGS = [
+  { id: 'b1', userId: 'u1', hotelId: 'h1', discountPercent: 20, promoCode: 'SUMMER' },
+  { id: 'b2', userId: 'u2', hotelId: 'h2', discountPercent: 10, promoCode: 'WINTER' },
+]
+
+async function fetchBookingsFromSource(userId) {
+  return MOCK_BOOKINGS.filter((b) => b.userId === userId);
+}
+
 const resolvers = {
   Query: {
     bookingsByUser: async (_, { userId }, { req }) => {
-		// TODO: Реальный вызов к grpc booking-сервису или заглушка + ACL
+      console.log('=== HEADERS RECEIVED IN SUBGRAPH ===', req.headers);
+      const requesterId = req.headers['userid'];
+
+      if (!requesterId) {
+        return [];
+      }
+
+      if (requesterId !== userId) {
+        return [];
+      }
+
+      return fetchBookingsFromSource(userId);
     },
   },
   Booking: {
-	  // TODO: Реальный вызов к grpc booking-сервису или заглушка + ACL
+	  __resolveReference: async ({ id }, { req }) => {
+        const requesterId = req.headers['userid'];
+        const booking = MOCK_BOOKINGS.find((b) => b.id === id);
+
+        if (!booking || !requesterId || booking.userId !== requesterId) {
+          return null;
+        }
+
+        return booking;
+      },
+    hotel: (booking) => ({ __typename: 'Hotel', id: booking.hotelId}),
   },
 };
+
 
 const server = new ApolloServer({
   schema: buildSubgraphSchema([{ typeDefs, resolvers }]),
