@@ -17,8 +17,8 @@ const typeDefs = gql`
 `;
 
 const MOCK_HOTELS = [
-  { id: 'h1', name: 'Grand Hotel', city: 'Berlin', stars: 5 },
-  { id: 'h2', name: 'Seaside Resort', city: 'Limassol', stars: 4 },
+  { id: 'test-hotel-1', name: 'Grand Hotel', city: 'Berlin', stars: 5 },
+  { id: 'test-hotel-2', name: 'Seaside Resort', city: 'Limassol', stars: 4 },
 ];
 
 async function fetchHotelById(id) {

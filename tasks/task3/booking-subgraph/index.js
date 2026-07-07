@@ -2,6 +2,7 @@ import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { buildSubgraphSchema } from '@apollo/subgraph';
 import gql from 'graphql-tag';
+import { listBookings } from "./grpcClient.js";
 
 const typeDefs = gql`
   type Booking @key(fields: "id") {
@@ -9,7 +10,7 @@ const typeDefs = gql`
     userId: String!
     hotelId: String!
     promoCode: String
-    discountPercent: Int
+    discountPercent: Float
     hotel: Hotel
   }
   
@@ -23,19 +24,18 @@ const typeDefs = gql`
 
 `;
 
-const MOCK_BOOKINGS = [
-  { id: 'b1', userId: 'u1', hotelId: 'h1', discountPercent: 20, promoCode: 'SUMMER' },
-  { id: 'b2', userId: 'u2', hotelId: 'h2', discountPercent: 10, promoCode: 'WINTER' },
-]
+// const MOCK_BOOKINGS = [
+//   { id: 'b1', userId: 'u1', hotelId: 'h1', discountPercent: 20, promoCode: 'SUMMER' },
+//   { id: 'b2', userId: 'u2', hotelId: 'h2', discountPercent: 10, promoCode: 'WINTER' },
+// ]
 
-async function fetchBookingsFromSource(userId) {
-  return MOCK_BOOKINGS.filter((b) => b.userId === userId);
-}
+// async function fetchBookingsFromSource(userId) {
+//   return MOCK_BOOKINGS.filter((b) => b.userId === userId);
+// }
 
 const resolvers = {
   Query: {
     bookingsByUser: async (_, { userId }, { req }) => {
-      console.log('=== HEADERS RECEIVED IN SUBGRAPH ===', req.headers);
       const requesterId = req.headers['userid'];
 
       if (!requesterId) {
@@ -46,20 +46,10 @@ const resolvers = {
         return [];
       }
 
-      return fetchBookingsFromSource(userId);
+      return listBookings(userId);
     },
   },
   Booking: {
-	  __resolveReference: async ({ id }, { req }) => {
-        const requesterId = req.headers['userid'];
-        const booking = MOCK_BOOKINGS.find((b) => b.id === id);
-
-        if (!booking || !requesterId || booking.userId !== requesterId) {
-          return null;
-        }
-
-        return booking;
-      },
     hotel: (booking) => ({ __typename: 'Hotel', id: booking.hotelId}),
   },
 };
