@@ -24,6 +24,9 @@
       <module name="hotelio-monolith" options="-parameters" />
       <module name="hotelio-monolith.main" options="-parameters" />
       <module name="hotelio-monolith.test" options="-parameters" />
+      <module name="task5.booking-service" options="-parameters" />
+      <module name="task5.booking-service.main" options="-parameters" />
+      <module name="task5.booking-service.test" options="-parameters" />
     </option>
   </component>
 </project>
