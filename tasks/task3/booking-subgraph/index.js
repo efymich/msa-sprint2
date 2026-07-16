@@ -1,6 +1,7 @@
 import { ApolloServer } from '@apollo/server';
 import { startStandaloneServer } from '@apollo/server/standalone';
 import { buildSubgraphSchema } from '@apollo/subgraph';
+import { GraphQLError } from 'graphql';
 import gql from 'graphql-tag';
 import { listBookings } from "./grpcClient.js";
 
@@ -39,11 +40,21 @@ const resolvers = {
       const requesterId = req.headers['userid'];
 
       if (!requesterId) {
-        return [];
+        throw new GraphQLError('Missing required header "userid"', {
+          extensions: {
+            code: 'UNAUTHENTICATED',
+            http: { status: 401 },
+          },
+        });
       }
 
       if (requesterId !== userId) {
-        return [];
+        throw new GraphQLError('Requester is not authorized to access these bookings', {
+          extensions: {
+            code: 'FORBIDDEN',
+            http: { status: 403 },
+          },
+        });
       }
 
       return listBookings(userId);
